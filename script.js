@@ -46,11 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const rate = parseInt(el.dataset.rate || '0', 10);
             const baselineDate = el.dataset.baselineDate;
 
-            // Calculate live target based on days elapsed since baseline
+            // Calculate live target — only tick within 24 hours of baseline, then cap
             let liveTarget = baseTarget;
             if (rate && baselineDate) {
                 const daysSince = (Date.now() - new Date(baselineDate).getTime()) / 86400000;
-                liveTarget = baseTarget + Math.floor(daysSince * rate);
+                const cappedDays = Math.min(daysSince, 1);
+                liveTarget = baseTarget + Math.floor(cappedDays * rate);
             }
 
             const duration = 8000;
@@ -66,9 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (progress < 1) {
                     current = Math.floor(eased * liveTarget);
                 } else if (rate) {
-                    // After initial animation, keep ticking
+                    // After initial animation, keep ticking but cap at 1 day
                     const daysSince = (Date.now() - new Date(baselineDate).getTime()) / 86400000;
-                    current = baseTarget + Math.floor(daysSince * rate);
+                    const cappedDays = Math.min(daysSince, 1);
+                    current = baseTarget + Math.floor(cappedDays * rate);
                 } else {
                     el.textContent = formatNumber(liveTarget, useCommas);
                     return;
