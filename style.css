@@ -787,6 +787,56 @@ body {
     color: var(--accent);
 }
 
+.credit-play {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    padding: 0;
+    opacity: 0;
+}
+
+.credit-thumb:hover .credit-play {
+    opacity: 1;
+}
+
+.credit-play:hover {
+    border-color: var(--accent);
+    background: rgba(201, 168, 76, 0.1);
+}
+
+.credit-play.playing {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.credit-item.now-playing {
+    border-color: rgba(201, 168, 76, 0.2);
+    z-index: 10;
+    position: relative;
+    transition: transform 0.05s ease, background 0.05s ease;
+}
+
+.credit-item.now-playing .credit-thumb {
+    transition: transform 0.05s ease, box-shadow 0.05s ease;
+    z-index: 11;
+    overflow: visible;
+}
+
+.credit-play svg {
+    width: 12px;
+    height: 12px;
+}
+
 .credit-cert {
     font-size: 0.75rem;
     font-weight: 600;

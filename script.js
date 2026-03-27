@@ -297,6 +297,125 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ---- Preview play buttons ----
+    let currentAudio = null;
+    let currentBtn = null;
+    let currentItem = null;
+    let audioCtx = null;
+    let analyser = null;
+    let animFrameId = null;
+
+    const playIcon = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg>';
+    const pauseIcon = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="4" height="12"/><rect x="9" y="2" width="4" height="12"/></svg>';
+
+    function startBassAnalysis(audio, item) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaElementSource(audio);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        const thumb = item.querySelector('.credit-thumb');
+        const binHz = audioCtx.sampleRate / analyser.fftSize; // ~21.5Hz per bin
+        const lowBin = Math.floor(30 / binHz);   // ~1
+        const highBin = Math.ceil(120 / binHz);   // ~6
+
+        function pulse() {
+            analyser.getByteFrequencyData(dataArray);
+            let bass = 0;
+            for (let i = lowBin; i <= highBin; i++) bass += dataArray[i];
+            bass = bass / (highBin - lowBin + 1) / 255;
+
+            const scale = 1 + bass * 0.5;
+            const glow = bass * 60;
+            const spread = bass * 40;
+            if (thumb) {
+                thumb.style.transform = 'scale(' + scale + ')';
+                thumb.style.boxShadow = '0 0 ' + glow + 'px ' + spread + 'px rgba(201, 168, 76, ' + (bass * 0.8) + ')';
+            }
+
+            // Also pulse the entire row
+            const row = thumb.closest('.credit-item');
+            if (row) {
+                row.style.background = 'rgba(201, 168, 76, ' + (bass * 0.08) + ')';
+                row.style.transform = 'scale(' + (1 + bass * 0.02) + ')';
+            }
+
+            animFrameId = requestAnimationFrame(pulse);
+        }
+        pulse();
+    }
+
+    function stopBassAnalysis(item) {
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+        const thumb = item ? item.querySelector('.credit-thumb') : null;
+        if (thumb) {
+            thumb.style.transform = '';
+            thumb.style.boxShadow = '';
+        }
+        if (item) {
+            item.style.background = '';
+            item.style.transform = '';
+        }
+    }
+
+    document.querySelectorAll('.credit-item[data-preview]').forEach(item => {
+        const previewUrl = item.dataset.preview;
+        const btn = document.createElement('button');
+        btn.className = 'credit-play';
+        btn.innerHTML = playIcon;
+
+        // Insert inside credit-thumb (overlay on cover art)
+        const thumb = item.querySelector('.credit-thumb');
+        if (thumb) {
+            thumb.style.position = 'relative';
+            thumb.appendChild(btn);
+        }
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentAudio && currentBtn === btn) {
+                currentAudio.pause();
+                btn.innerHTML = playIcon;
+                btn.classList.remove('playing');
+                item.classList.remove('now-playing');
+                stopBassAnalysis(currentItem);
+                currentAudio = null;
+                currentBtn = null;
+                currentItem = null;
+                return;
+            }
+            if (currentAudio) {
+                currentAudio.pause();
+                currentBtn.innerHTML = playIcon;
+                currentBtn.classList.remove('playing');
+                if (currentItem) currentItem.classList.remove('now-playing');
+                stopBassAnalysis(currentItem);
+            }
+            const audio = new Audio(previewUrl);
+            audio.crossOrigin = 'anonymous';
+            audio.play();
+            btn.innerHTML = pauseIcon;
+            btn.classList.add('playing');
+            item.classList.add('now-playing');
+            currentAudio = audio;
+            currentBtn = btn;
+            currentItem = item;
+            startBassAnalysis(audio, item);
+            audio.addEventListener('ended', () => {
+                btn.innerHTML = playIcon;
+                btn.classList.remove('playing');
+                item.classList.remove('now-playing');
+                stopBassAnalysis(item);
+                currentAudio = null;
+                currentBtn = null;
+                currentItem = null;
+            });
+        });
+    });
+
     // ---- Credit item hover sound-wave effect ----
     document.querySelectorAll('.credit-item').forEach(item => {
         item.addEventListener('mouseenter', () => {
