@@ -186,6 +186,84 @@ document.addEventListener('DOMContentLoaded', () => {
             dot.addEventListener('click', () => { goToSlide(parseInt(dot.dataset.slide)); resetAutoplay(); });
         });
         startAutoplay();
+
+        const featuredCarousel = document.querySelector('.featured-carousel');
+        if (featuredCarousel) {
+            featuredCarousel.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
+            featuredCarousel.addEventListener('mouseleave', () => startAutoplay());
+        }
+    }
+
+    // ---- Discography carousel ----
+    const discoSlides = document.querySelectorAll('.disco-slide');
+    const discoPrev = document.querySelector('.disco-prev');
+    const discoNext = document.querySelector('.disco-next');
+    let currentDisco = 0;
+
+    function goToDisco(index) {
+        discoSlides[currentDisco].classList.remove('active');
+        currentDisco = (index + discoSlides.length) % discoSlides.length;
+        void discoSlides[currentDisco].offsetWidth;
+        discoSlides[currentDisco].classList.add('active');
+    }
+
+    let discoAutoplay;
+    const discoCarousel = document.querySelector('.disco-carousel');
+
+    function startDiscoAutoplay() {
+        discoAutoplay = setInterval(() => goToDisco(currentDisco + 1), 6000);
+    }
+
+    function resetDiscoAutoplay() {
+        clearInterval(discoAutoplay);
+        startDiscoAutoplay();
+    }
+
+    if (discoPrev && discoNext) {
+        discoPrev.addEventListener('click', () => { goToDisco(currentDisco - 1); resetDiscoAutoplay(); });
+        discoNext.addEventListener('click', () => { goToDisco(currentDisco + 1); resetDiscoAutoplay(); });
+        startDiscoAutoplay();
+
+        if (discoCarousel) {
+            discoCarousel.addEventListener('mouseenter', () => clearInterval(discoAutoplay));
+            discoCarousel.addEventListener('mouseleave', () => startDiscoAutoplay());
+        }
+    }
+
+    // ---- Credits show more / collapse ----
+    const showMoreBtn = document.getElementById('showMoreCredits');
+    const VISIBLE_COUNT = 20;
+    let creditsExpanded = false;
+
+    function collapseCredits() {
+        const visible = document.querySelectorAll('.credit-item:not(.hidden)');
+        visible.forEach((item, i) => {
+            if (i >= VISIBLE_COUNT) {
+                item.classList.add('collapsed');
+            } else {
+                item.classList.remove('collapsed');
+            }
+        });
+    }
+
+    // Collapse on load
+    collapseCredits();
+
+    if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', () => {
+            creditsExpanded = !creditsExpanded;
+            if (creditsExpanded) {
+                document.querySelectorAll('.credit-item.collapsed').forEach(item => {
+                    item.classList.remove('collapsed');
+                });
+                showMoreBtn.textContent = 'Show Less';
+            } else {
+                collapseCredits();
+                showMoreBtn.textContent = 'Show All Credits';
+                // Scroll back to credits section
+                document.getElementById('credits').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
     }
 
     // ---- Credits filter ----
@@ -211,6 +289,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             });
+
+            // Re-collapse after filtering
+            creditsExpanded = false;
+            showMoreBtn.textContent = 'Show All Credits';
+            collapseCredits();
         });
     });
 

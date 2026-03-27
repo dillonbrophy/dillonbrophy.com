@@ -2,6 +2,14 @@
    BROPHY — Engineer / Producer
    ======================================== */
 
+@font-face {
+    font-family: 'VCR OSD Mono';
+    src: url('assets/fonts/VCR_OSD_MONO_1.001.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     --bg: #0a0a0a;
     --bg-elevated: #111111;
@@ -16,7 +24,7 @@
     --radius: 12px;
     --radius-sm: 8px;
     --radius-lg: 20px;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body: 'VCR OSD Mono', 'Inter', -apple-system, BlinkMacSystemFont, monospace;
     --font-display: 'Space Grotesk', 'Inter', sans-serif;
 }
 
@@ -224,7 +232,7 @@ body {
 }
 
 .stat-number {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 2.5rem;
     font-weight: 700;
     color: var(--text);
@@ -257,16 +265,23 @@ body {
     font-weight: 500;
 }
 
+.hero-accolades {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 1s forwards;
+}
+
 .hero-accolade {
     display: inline-flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: 100px;
-    padding: 14px 28px;
-    opacity: 0;
-    animation: fadeUp 0.8s ease 1s forwards;
+    padding: 12px 24px;
 }
 
 .accolade-icon {
@@ -639,6 +654,35 @@ body {
     display: none;
 }
 
+.credit-item.collapsed {
+    display: none;
+}
+
+.credits-show-more {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+}
+
+.credits-show-more button {
+    padding: 12px 32px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 100px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 0.3px;
+}
+
+.credits-show-more button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
 .credits-list {
     display: flex;
     flex-direction: column;
@@ -660,7 +704,7 @@ body {
 
 .credit-item {
     display: grid;
-    grid-template-columns: 80px 48px 1fr auto auto;
+    grid-template-columns: 110px 48px 1fr auto auto;
     align-items: center;
     gap: 16px;
     padding: 20px 0;
@@ -738,69 +782,74 @@ body {
 }
 
 /* ---- Discography ---- */
-.disco-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 24px;
+.disco-carousel {
+    position: relative;
+}
+
+.disco-track {
+    position: relative;
+    overflow: hidden;
+}
+
+.disco-slide {
+    display: none;
+}
+
+.disco-slide.active {
+    display: flex;
+    animation: carouselFadeIn 0.5s ease;
 }
 
 .disco-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    transition: transform 0.3s, border-color 0.3s;
-}
-
-.disco-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--border-light);
+    gap: 32px;
+    padding: 32px;
+    align-items: center;
 }
 
 .disco-cover {
-    height: 260px;
-    position: relative;
+    width: 240px;
+    height: 240px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-.disco-cover-1 {
-    background: linear-gradient(135deg, #2d1b4e 0%, #c9a84c 50%, #1a1a2e 100%);
+.disco-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.disco-cover-2 {
-    background: linear-gradient(135deg, #0d0d0d 0%, #333 40%, #c9a84c 100%);
-}
-
-.disco-cover-3 {
-    background: linear-gradient(135deg, #1a0a00 0%, #8b4513 50%, #c9a84c 100%);
-}
-
-.disco-cover-4 {
-    background: linear-gradient(135deg, #1a1a2e 0%, #e74c3c 50%, #c9a84c 100%);
-}
-
-.disco-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.3);
+.disco-dots {
     display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-    padding: 16px;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
 }
 
-.disco-year-badge {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
-    padding: 6px 14px;
-    border-radius: 100px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    color: var(--text);
+.disco-prev {
+    left: -22px;
+}
+
+.disco-next {
+    right: -22px;
 }
 
 .disco-info {
-    padding: 20px;
+    padding: 0;
+    flex: 1;
+}
+
+.disco-stats {
+    font-size: 0.8rem;
+    color: var(--accent);
+    margin-top: 12px;
+    font-weight: 500;
 }
 
 .disco-artist {
@@ -854,6 +903,38 @@ body {
     margin-bottom: 40px;
 }
 
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+    max-width: 480px;
+}
+
+.contact-form input,
+.contact-form textarea {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.3s;
+    resize: vertical;
+}
+
+.contact-form input::placeholder,
+.contact-form textarea::placeholder {
+    color: var(--text-dim);
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    border-color: var(--accent);
+}
+
 .contact-links {
     display: flex;
     flex-direction: column;
@@ -863,16 +944,22 @@ body {
 .contact-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
     background: var(--accent);
     color: var(--bg);
     text-decoration: none;
     padding: 16px 32px;
     border-radius: 100px;
+    font-family: var(--font-body);
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
     transition: all 0.3s;
-    width: fit-content;
+    width: 100%;
+    max-width: 480px;
+    border: none;
+    cursor: pointer;
 }
 
 .contact-btn:hover {
@@ -1098,8 +1185,15 @@ body {
     }
 
     /* Discography */
-    .disco-grid {
-        grid-template-columns: 1fr;
+    .disco-card {
+        flex-direction: column;
+        padding: 24px;
+        gap: 24px;
+    }
+
+    .disco-cover {
+        width: 180px;
+        height: 180px;
     }
 
     .footer-inner {
