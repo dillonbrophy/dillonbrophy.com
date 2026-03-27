@@ -34,26 +34,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const statNumbers = document.querySelectorAll('.stat-number[data-target]');
     let statsCounted = false;
 
+    function formatNumber(n, useCommas) {
+        if (useCommas) return n.toLocaleString('en-US');
+        return n.toString();
+    }
+
     function animateCounters() {
         statNumbers.forEach(el => {
             const target = parseInt(el.dataset.target, 10);
-            const duration = 1800;
+            const useCommas = el.dataset.format === 'commas';
+            const duration = 8000;
             const start = performance.now();
 
             function update(now) {
                 const elapsed = now - start;
                 const progress = Math.min(elapsed / duration, 1);
-                // Ease out cubic
                 const eased = 1 - Math.pow(1 - progress, 3);
-                el.textContent = Math.floor(eased * target);
+                el.textContent = formatNumber(Math.floor(eased * target), useCommas);
                 if (progress < 1) {
                     requestAnimationFrame(update);
                 } else {
-                    el.textContent = target;
+                    el.textContent = formatNumber(target, useCommas);
                 }
             }
             requestAnimationFrame(update);
         });
+
+        // Animate the percent countdown (100 -> 1)
+        const percentEl = document.querySelector('.stat-percent');
+        if (percentEl) {
+            const target = parseInt(percentEl.dataset.target, 10);
+            const duration = 8000;
+            const start = performance.now();
+
+            function updatePercent(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(100 - eased * (100 - target));
+                percentEl.textContent = current;
+                if (progress < 1) {
+                    requestAnimationFrame(updatePercent);
+                } else {
+                    percentEl.textContent = 'TOP ' + target;
+                }
+            }
+            requestAnimationFrame(updatePercent);
+        }
     }
 
     // ---- Intersection Observer for fade-ups ----
@@ -98,6 +125,70 @@ document.addEventListener('DOMContentLoaded', () => {
                     block: 'start'
                 });
             }
+        });
+    });
+
+    // ---- Featured carousel ----
+    const slides = document.querySelectorAll('.carousel-slide');
+    const dots = document.querySelectorAll('.carousel-dot');
+    const prevBtn = document.querySelector('.carousel-prev');
+    const nextBtn = document.querySelector('.carousel-next');
+    let currentSlide = 0;
+
+    function goToSlide(index) {
+        slides[currentSlide].classList.remove('active');
+        dots[currentSlide].classList.remove('active');
+        currentSlide = (index + slides.length) % slides.length;
+        slides[currentSlide].classList.remove('active');
+        // Force reflow for animation
+        void slides[currentSlide].offsetWidth;
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+    }
+
+    let autoplayInterval;
+
+    function startAutoplay() {
+        autoplayInterval = setInterval(() => goToSlide(currentSlide + 1), 6000);
+    }
+
+    function resetAutoplay() {
+        clearInterval(autoplayInterval);
+        startAutoplay();
+    }
+
+    if (prevBtn && nextBtn) {
+        prevBtn.addEventListener('click', () => { goToSlide(currentSlide - 1); resetAutoplay(); });
+        nextBtn.addEventListener('click', () => { goToSlide(currentSlide + 1); resetAutoplay(); });
+        dots.forEach(dot => {
+            dot.addEventListener('click', () => { goToSlide(parseInt(dot.dataset.slide)); resetAutoplay(); });
+        });
+        startAutoplay();
+    }
+
+    // ---- Credits filter ----
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const creditItems = document.querySelectorAll('.credit-item');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const filter = btn.dataset.filter;
+
+            creditItems.forEach(item => {
+                if (filter === 'all') {
+                    item.classList.remove('hidden');
+                } else {
+                    const roles = item.dataset.roles || '';
+                    if (roles.split(' ').includes(filter)) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                }
+            });
         });
     });
 
