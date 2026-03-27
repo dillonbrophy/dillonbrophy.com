@@ -41,8 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function animateCounters() {
         statNumbers.forEach(el => {
-            const target = parseInt(el.dataset.target, 10);
+            const baseTarget = parseInt(el.dataset.target, 10);
             const useCommas = el.dataset.format === 'commas';
+            const rate = parseInt(el.dataset.rate || '0', 10);
+            const baselineDate = el.dataset.baselineDate;
+
+            // Calculate live target based on days elapsed since baseline
+            let liveTarget = baseTarget;
+            if (rate && baselineDate) {
+                const daysSince = (Date.now() - new Date(baselineDate).getTime()) / 86400000;
+                liveTarget = baseTarget + Math.floor(daysSince * rate);
+            }
+
             const duration = 8000;
             const start = performance.now();
 
@@ -50,12 +60,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const elapsed = now - start;
                 const progress = Math.min(elapsed / duration, 1);
                 const eased = 1 - Math.pow(1 - progress, 3);
-                el.textContent = formatNumber(Math.floor(eased * target), useCommas);
+
+                // Current animated value
+                let current;
                 if (progress < 1) {
-                    requestAnimationFrame(update);
+                    current = Math.floor(eased * liveTarget);
+                } else if (rate) {
+                    // After initial animation, keep ticking
+                    const daysSince = (Date.now() - new Date(baselineDate).getTime()) / 86400000;
+                    current = baseTarget + Math.floor(daysSince * rate);
                 } else {
-                    el.textContent = formatNumber(target, useCommas);
+                    el.textContent = formatNumber(liveTarget, useCommas);
+                    return;
                 }
+
+                el.textContent = formatNumber(current, useCommas);
+                requestAnimationFrame(update);
             }
             requestAnimationFrame(update);
         });
