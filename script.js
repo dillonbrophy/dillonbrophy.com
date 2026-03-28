@@ -310,7 +310,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startBassAnalysis(audio, item) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioCtx.createMediaElementSource(audio);
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        let source;
+        try {
+            source = audioCtx.createMediaElementSource(audio);
+        } catch(e) {
+            // Already connected or error — skip analysis but still play
+            return;
+        }
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 2048;
         source.connect(analyser);

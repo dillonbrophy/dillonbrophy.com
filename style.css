@@ -1308,6 +1308,10 @@ body {
         height: 40px;
     }
 
+    .credit-play {
+        opacity: 0.7;
+    }
+
     .credit-info {
         grid-column: auto;
     }
