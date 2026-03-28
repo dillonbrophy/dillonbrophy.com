@@ -368,6 +368,15 @@ body {
     font-size: 0.6rem;
 }
 
+.marquee-reverse {
+    display: none;
+}
+
+@keyframes marqueeReverse {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+}
+
 /* ---- Sections ---- */
 .section {
     padding: 60px 0;
@@ -1306,6 +1315,20 @@ body {
     .credit-thumb {
         width: 40px;
         height: 40px;
+    }
+
+    /* Two-row marquee on mobile */
+    .marquee-reverse {
+        display: block;
+        margin-top: 8px;
+    }
+
+    .marquee-track-reverse {
+        animation: marqueeReverse 15s linear infinite;
+    }
+
+    .marquee-track {
+        font-size: 0.85rem;
     }
 
     .credit-play {
