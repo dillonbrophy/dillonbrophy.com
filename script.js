@@ -634,15 +634,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const audio = new Audio(previewUrl);
             audio.crossOrigin = 'anonymous';
-            audio.play();
             btn.innerHTML = pauseIcon;
             btn.classList.add('playing');
             item.classList.add('now-playing');
             currentAudio = audio;
             currentBtn = btn;
             currentItem = item;
-            startBassAnalysis(audio, item);
             if (isMobile) showMobilePlayer(item);
+            audio.play().then(() => {
+                startBassAnalysis(audio, item);
+            }).catch(e => {
+                console.log('Play failed:', e);
+            });
             audio.addEventListener('ended', () => {
                 btn.innerHTML = playIcon;
                 btn.classList.remove('playing');
