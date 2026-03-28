@@ -1309,7 +1309,33 @@ body {
     }
 
     .credit-play {
-        opacity: 0.7;
+        opacity: 0.8;
+        border-radius: 50%;
+    }
+
+    .credit-item.now-playing .credit-thumb {
+        overflow: visible;
+        border-radius: 50%;
+        background: none !important;
+    }
+
+    .credit-item.now-playing .credit-thumb img {
+        border-radius: 50%;
+    }
+
+    .vinyl-platter {
+        inset: -4px;
+    }
+
+    .vinyl-needle {
+        width: 16px;
+        height: 28px;
+        right: -10px;
+        top: -3px;
+    }
+
+    .spectrum-overlay {
+        display: none;
     }
 
     .credit-info {
