@@ -308,6 +308,90 @@ document.addEventListener('DOMContentLoaded', () => {
     const playIcon = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg>';
     const pauseIcon = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="4" height="12"/><rect x="9" y="2" width="4" height="12"/></svg>';
 
+    const isMobile = window.innerWidth <= 768;
+
+    // Create mobile player and edge glow elements
+    let mobilePlayer = null;
+    let edgeGlow = null;
+
+    if (isMobile) {
+        mobilePlayer = document.createElement('div');
+        mobilePlayer.className = 'mobile-player';
+        mobilePlayer.innerHTML = `
+            <div class="mobile-player-bg"></div>
+            <div class="mobile-player-overlay"></div>
+            <button class="mobile-player-close">&times;</button>
+            <div class="mobile-player-art">
+                <div class="vinyl-platter"></div>
+                <img src="" alt="">
+            </div>
+            <div class="mobile-player-info">
+                <div class="mobile-player-artist"></div>
+                <div class="mobile-player-track"></div>
+                <div class="mobile-player-streams"></div>
+            </div>
+            <button class="mobile-player-btn">${pauseIcon}</button>
+        `;
+        document.body.appendChild(mobilePlayer);
+
+        edgeGlow = document.createElement('div');
+        edgeGlow.className = 'edge-glow';
+        document.body.appendChild(edgeGlow);
+
+        // Close button
+        mobilePlayer.querySelector('.mobile-player-close').addEventListener('click', () => {
+            if (currentAudio) {
+                currentAudio.pause();
+                if (currentBtn) { currentBtn.innerHTML = playIcon; currentBtn.classList.remove('playing'); }
+                if (currentItem) { currentItem.classList.remove('now-playing'); }
+                stopBassAnalysis(currentItem);
+                currentAudio = null;
+                currentBtn = null;
+                currentItem = null;
+            }
+            mobilePlayer.classList.remove('active');
+            edgeGlow.style.opacity = '0';
+        });
+
+        // Pause/play button in mobile player
+        mobilePlayer.querySelector('.mobile-player-btn').addEventListener('click', () => {
+            if (currentAudio) {
+                if (currentAudio.paused) {
+                    currentAudio.play();
+                    mobilePlayer.querySelector('.mobile-player-btn').innerHTML = pauseIcon;
+                } else {
+                    currentAudio.pause();
+                    mobilePlayer.querySelector('.mobile-player-btn').innerHTML = playIcon;
+                }
+            }
+        });
+    }
+
+    function showMobilePlayer(item) {
+        if (!mobilePlayer) return;
+        const thumb = item.querySelector('.credit-thumb img');
+        const artist = item.querySelector('.credit-artist').textContent;
+        const track = item.querySelector('.credit-track').textContent;
+        const cert = item.querySelector('.credit-cert').textContent;
+        const imgSrc = thumb ? thumb.src : '';
+
+        mobilePlayer.querySelector('.mobile-player-bg').style.backgroundImage = `url(${imgSrc})`;
+        mobilePlayer.querySelector('.mobile-player-art img').src = imgSrc;
+        mobilePlayer.querySelector('.mobile-player-artist').textContent = artist;
+        mobilePlayer.querySelector('.mobile-player-track').textContent = track;
+        mobilePlayer.querySelector('.mobile-player-streams').textContent = cert;
+        mobilePlayer.querySelector('.mobile-player-btn').innerHTML = pauseIcon;
+        mobilePlayer.classList.add('active');
+    }
+
+    function updateEdgeGlow(bass) {
+        if (!edgeGlow || !mobilePlayer || !mobilePlayer.classList.contains('active')) return;
+        const intensity = bass * 0.7;
+        const spread = 20 + bass * 50;
+        edgeGlow.style.opacity = String(intensity);
+        edgeGlow.style.boxShadow = `inset 0 0 ${spread}px ${spread * 0.4}px rgba(201, 168, 76, ${intensity})`;
+    }
+
     function startBassAnalysis(audio, item) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -465,6 +549,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // Mobile edge glow
+            if (isMobile) updateEdgeGlow(bass);
+
+            // Mobile player art pulse
+            if (isMobile && mobilePlayer && mobilePlayer.classList.contains('active')) {
+                const mpArt = mobilePlayer.querySelector('.mobile-player-art');
+                if (mpArt) {
+                    const s = 1 + bass * 0.12;
+                    const g = bass * 40;
+                    mpArt.style.transform = 'scale(' + s + ')';
+                    mpArt.style.filter = 'drop-shadow(0 0 ' + g + 'px rgba(201, 168, 76, ' + (bass * 0.6) + '))';
+                }
+            }
+
             animFrameId = requestAnimationFrame(pulse);
         }
         pulse();
@@ -544,6 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentBtn = btn;
             currentItem = item;
             startBassAnalysis(audio, item);
+            if (isMobile) showMobilePlayer(item);
             audio.addEventListener('ended', () => {
                 btn.innerHTML = playIcon;
                 btn.classList.remove('playing');
@@ -552,6 +651,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentAudio = null;
                 currentBtn = null;
                 currentItem = null;
+                if (mobilePlayer) mobilePlayer.classList.remove('active');
+                if (edgeGlow) edgeGlow.style.opacity = '0';
             });
         });
     });
