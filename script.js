@@ -338,8 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         edgeGlow.className = 'edge-glow';
         document.body.appendChild(edgeGlow);
 
-        // Close button
-        mobilePlayer.querySelector('.mobile-player-close').addEventListener('click', () => {
+        function closeMobilePlayer() {
             if (currentAudio) {
                 currentAudio.pause();
                 if (currentBtn) { currentBtn.innerHTML = playIcon; currentBtn.classList.remove('playing'); }
@@ -350,7 +349,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentItem = null;
             }
             mobilePlayer.classList.remove('active');
+            mobilePlayer.style.transform = '';
+            mobilePlayer.style.opacity = '';
             edgeGlow.style.opacity = '0';
+        }
+
+        // Close button
+        mobilePlayer.querySelector('.mobile-player-close').addEventListener('click', closeMobilePlayer);
+
+        // Swipe down to close
+        let touchStartY = 0;
+        let touchCurrentY = 0;
+        let isSwiping = false;
+
+        mobilePlayer.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+            isSwiping = true;
+        });
+
+        mobilePlayer.addEventListener('touchmove', (e) => {
+            if (!isSwiping) return;
+            touchCurrentY = e.touches[0].clientY;
+            const diff = touchCurrentY - touchStartY;
+            if (diff > 0) {
+                mobilePlayer.style.transform = 'translateY(' + diff + 'px)';
+                mobilePlayer.style.opacity = String(Math.max(0, 1 - diff / 400));
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        mobilePlayer.addEventListener('touchend', () => {
+            if (!isSwiping) return;
+            isSwiping = false;
+            const diff = touchCurrentY - touchStartY;
+            if (diff > 120) {
+                closeMobilePlayer();
+            } else {
+                mobilePlayer.style.transform = '';
+                mobilePlayer.style.opacity = '';
+            }
         });
 
         // Pause/play button in mobile player
