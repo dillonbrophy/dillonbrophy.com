@@ -161,7 +161,7 @@ body {
 /* ---- Hero ---- */
 .hero {
     position: relative;
-    min-height: 100vh;
+    min-height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -178,7 +178,7 @@ body {
 .hero-content {
     position: relative;
     text-align: center;
-    padding: 120px 24px 80px;
+    padding: 120px 24px 40px;
 }
 
 .hero-eyebrow {
@@ -370,7 +370,7 @@ body {
 
 /* ---- Sections ---- */
 .section {
-    padding: 120px 0;
+    padding: 60px 0;
 }
 
 .section-grid {
@@ -709,6 +709,54 @@ body {
     border-radius: 6px;
     overflow: hidden;
     flex-shrink: 0;
+    background: transparent;
+}
+
+.credit-item.now-playing .credit-thumb {
+    overflow: visible;
+    background: none !important;
+    border-radius: 50%;
+    border: none;
+    box-decoration-break: clone;
+}
+
+/* Vinyl platter base */
+.vinyl-platter {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        #111 0%,
+        #1a1a1a 20%,
+        #111 21%,
+        #1a1a1a 40%,
+        #111 41%,
+        #1a1a1a 60%,
+        #111 61%,
+        #1a1a1a 80%,
+        #222 100%
+    );
+    z-index: -1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6), inset 0 0 4px rgba(255,255,255,0.05);
+    animation: vinylSpin 8s linear infinite;
+}
+
+/* Center label dot */
+.vinyl-platter::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #333;
+    border: 1px solid #555;
+}
+
+.credit-item.now-playing .credit-play {
+    border-radius: 50%;
 }
 
 .credit-thumb img {
@@ -817,6 +865,7 @@ body {
 .credit-play.playing {
     opacity: 1;
     background: rgba(0, 0, 0, 0.6);
+    z-index: 20;
 }
 
 .credit-item.now-playing {
@@ -824,6 +873,22 @@ body {
     z-index: 10;
     position: relative;
     transition: transform 0.05s ease, background 0.05s ease;
+    overflow: visible !important;
+}
+
+/* Retro spectrum analyzer */
+.spectrum-overlay {
+    position: fixed;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0.5;
+    overflow: hidden;
+}
+
+.spectrum-overlay canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
 .credit-item.now-playing .credit-thumb {
@@ -831,6 +896,61 @@ body {
     z-index: 11;
     overflow: visible;
 }
+
+/* Cover rotation while playing */
+.credit-item.now-playing .credit-thumb img {
+    animation: vinylSpin 8s linear infinite;
+    border-radius: 50%;
+}
+
+/* Vinyl needle */
+.vinyl-needle {
+    position: absolute;
+    top: -4px;
+    right: -14px;
+    width: 20px;
+    height: 36px;
+    pointer-events: none;
+    z-index: 13;
+    transform-origin: top right;
+    transform: rotate(-8deg);
+    transition: transform 0.4s ease;
+}
+
+.credit-item.now-playing .vinyl-needle {
+    transform: rotate(4deg);
+}
+
+@keyframes vinylSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Background flash overlay */
+.bass-flash {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(201, 168, 76, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.05s ease;
+}
+
+/* Text shake on bass */
+.credit-item.now-playing.bass-hit .credit-artist,
+.credit-item.now-playing.bass-hit .credit-track {
+    animation: textShake 0.1s ease;
+}
+
+@keyframes textShake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    50% { transform: translateX(2px); }
+    75% { transform: translateX(-1px); }
+    100% { transform: translateX(0); }
+}
+
 
 .credit-play svg {
     width: 12px;

@@ -322,25 +322,140 @@ document.addEventListener('DOMContentLoaded', () => {
         const lowBin = Math.floor(30 / binHz);   // ~1
         const highBin = Math.ceil(120 / binHz);   // ~6
 
+        // Create background flash element
+        let flashEl = document.querySelector('.bass-flash');
+        if (!flashEl) {
+            flashEl = document.createElement('div');
+            flashEl.className = 'bass-flash';
+            document.body.appendChild(flashEl);
+        }
+
+
+        // Create spectrum analyzer as a fixed overlay positioned over the row
+        const row = item;
+        let specOverlay = document.querySelector('.spectrum-overlay');
+        if (!specOverlay) {
+            specOverlay = document.createElement('div');
+            specOverlay.className = 'spectrum-overlay';
+            const c = document.createElement('canvas');
+            specOverlay.appendChild(c);
+            document.body.appendChild(specOverlay);
+        }
+        const specCanvas = specOverlay.querySelector('canvas');
+        const specCtx = specCanvas.getContext('2d');
+        const NUM_BARS = 48;
+        const peakHold = new Float32Array(NUM_BARS);
+        const peakDecay = new Float32Array(NUM_BARS);
+
         function pulse() {
             analyser.getByteFrequencyData(dataArray);
             let bass = 0;
             for (let i = lowBin; i <= highBin; i++) bass += dataArray[i];
             bass = bass / (highBin - lowBin + 1) / 255;
 
+            // Position overlay — shift right past the cover art
+            const rect = row.getBoundingClientRect();
+            const offset = 320; // past date + cover art + track name
+            specOverlay.style.top = rect.top + 'px';
+            specOverlay.style.left = (rect.left + offset) + 'px';
+            specOverlay.style.width = (rect.width - offset) + 'px';
+            specOverlay.style.height = rect.height + 'px';
+
+            const cw = Math.floor(rect.width * 2);
+            const ch = Math.floor(rect.height * 2);
+            if (specCanvas.width !== cw || specCanvas.height !== ch) {
+                specCanvas.width = cw;
+                specCanvas.height = ch;
+            }
+            specCtx.clearRect(0, 0, cw, ch);
+
+            const barW = Math.floor(cw / NUM_BARS);
+            const gap = 2;
+            const binsPerBar = Math.floor(analyser.frequencyBinCount / NUM_BARS);
+
+            for (let i = 0; i < NUM_BARS; i++) {
+                // Average the frequency bins for this bar
+                let sum = 0;
+                for (let j = 0; j < binsPerBar; j++) {
+                    sum += dataArray[i * binsPerBar + j];
+                }
+                const val = sum / binsPerBar / 255;
+                const barH = val * ch * 0.85;
+
+                // Peak hold with decay
+                if (barH > peakHold[i]) {
+                    peakHold[i] = barH;
+                    peakDecay[i] = 0;
+                } else {
+                    peakDecay[i] += 0.8;
+                    peakHold[i] = Math.max(0, peakHold[i] - peakDecay[i]);
+                }
+
+                const x = i * barW;
+
+                // Draw bar with gold gradient
+                const grad = specCtx.createLinearGradient(0, ch, 0, ch - barH);
+                grad.addColorStop(0, 'rgba(166, 138, 58, 0.5)');
+                grad.addColorStop(0.5, 'rgba(201, 168, 76, 0.7)');
+                grad.addColorStop(1, 'rgba(230, 200, 100, 0.9)');
+                specCtx.fillStyle = grad;
+                specCtx.fillRect(x + gap/2, ch - barH, barW - gap, barH);
+
+                // Scanline effect on bars
+                for (let sy = ch - barH; sy < ch; sy += 4) {
+                    specCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+                    specCtx.fillRect(x + gap/2, sy, barW - gap, 1);
+                }
+
+                // Peak hold indicator
+                specCtx.fillStyle = 'rgba(230, 200, 100, 0.9)';
+                specCtx.fillRect(x + gap/2, ch - peakHold[i] - 3, barW - gap, 3);
+
+                // Glow on peak
+                specCtx.shadowColor = 'rgba(201, 168, 76, 0.5)';
+                specCtx.shadowBlur = 6;
+                specCtx.fillRect(x + gap/2, ch - peakHold[i] - 3, barW - gap, 3);
+                specCtx.shadowBlur = 0;
+            }
+
+            // CRT scanline overlay on entire canvas
+            for (let sy = 0; sy < ch; sy += 6) {
+                specCtx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+                specCtx.fillRect(0, sy, cw, 2);
+            }
+
+            // Clear the bottom baseline completely
+            specCtx.clearRect(0, ch - 16, cw, 16);
+
+            const now = Date.now();
             const scale = 1 + bass * 0.5;
             const glow = bass * 60;
             const spread = bass * 40;
+
             if (thumb) {
                 thumb.style.transform = 'scale(' + scale + ')';
                 thumb.style.boxShadow = '0 0 ' + glow + 'px ' + spread + 'px rgba(201, 168, 76, ' + (bass * 0.8) + ')';
             }
 
-            // Also pulse the entire row
-            const row = thumb.closest('.credit-item');
-            if (row) {
-                row.style.background = 'rgba(201, 168, 76, ' + (bass * 0.08) + ')';
-                row.style.transform = 'scale(' + (1 + bass * 0.02) + ')';
+            const creditRow = thumb.closest('.credit-item');
+            if (creditRow) {
+                creditRow.style.background = 'rgba(201, 168, 76, ' + (bass * 0.08) + ')';
+                creditRow.style.transform = 'scale(' + (1 + bass * 0.02) + ')';
+
+                // Bass hit detection (threshold)
+                if (bass > 0.45) {
+                    creditRow.classList.add('bass-hit');
+                    setTimeout(() => creditRow.classList.remove('bass-hit'), 100);
+
+                    // Background flash
+                    if (flashEl) {
+                        flashEl.style.opacity = String(bass * 0.8);
+                        setTimeout(() => { flashEl.style.opacity = '0'; }, 80);
+                    }
+
+                } else {
+                    creditRow.classList.remove('bass-hit');
+                }
             }
 
             animFrameId = requestAnimationFrame(pulse);
@@ -358,6 +473,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (item) {
             item.style.background = '';
             item.style.transform = '';
+            const specOverlay = document.querySelector('.spectrum-overlay');
+            if (specOverlay) specOverlay.remove();
         }
     }
 
@@ -372,6 +489,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (thumb) {
             thumb.style.position = 'relative';
             thumb.appendChild(btn);
+
+            // Add vinyl platter (grooved record behind the cover)
+            const platter = document.createElement('div');
+            platter.className = 'vinyl-platter';
+            thumb.appendChild(platter);
+
+            // Add vinyl needle
+            const needle = document.createElement('div');
+            needle.className = 'vinyl-needle';
+            needle.innerHTML = '<svg viewBox="0 0 20 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+                '<circle cx="16" cy="4" r="3.5" fill="#333" stroke="#555" stroke-width="1"/>' +
+                '<line x1="16" y1="7" x2="8" y2="32" stroke="#888" stroke-width="2" stroke-linecap="round"/>' +
+                '<line x1="8" y1="32" x2="6" y2="35" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/>' +
+                '<circle cx="6" cy="35" r="1" fill="#ccc"/>' +
+                '</svg>';
+            thumb.appendChild(needle);
         }
 
         btn.addEventListener('click', (e) => {
