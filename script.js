@@ -516,63 +516,85 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             specCtx.clearRect(0, 0, cw, ch);
 
-            const barW = Math.floor(cw / NUM_BARS);
-            const gap = 2;
-            const binsPerBar = Math.floor(analyser.frequencyBinCount / NUM_BARS);
+            const binsPerPoint = Math.floor(analyser.frequencyBinCount / NUM_BARS);
+            const points = [];
 
             for (let i = 0; i < NUM_BARS; i++) {
-                // Average the frequency bins for this bar
                 let sum = 0;
-                for (let j = 0; j < binsPerBar; j++) {
-                    sum += dataArray[i * binsPerBar + j];
+                for (let j = 0; j < binsPerPoint; j++) {
+                    sum += dataArray[i * binsPerPoint + j];
                 }
-                const val = sum / binsPerBar / 255;
-                const barH = val * ch * 0.85;
+                const val = sum / binsPerPoint / 255;
 
-                // Peak hold with decay
-                if (barH > peakHold[i]) {
-                    peakHold[i] = barH;
+                // Smooth with peak hold
+                if (val > peakHold[i]) {
+                    peakHold[i] = val;
                     peakDecay[i] = 0;
                 } else {
-                    peakDecay[i] += 0.8;
+                    peakDecay[i] += 0.012;
                     peakHold[i] = Math.max(0, peakHold[i] - peakDecay[i]);
                 }
 
-                const x = i * barW;
+                points.push(peakHold[i]);
+            }
 
-                // Draw bar with gold gradient
-                const grad = specCtx.createLinearGradient(0, ch, 0, ch - barH);
-                grad.addColorStop(0, 'rgba(166, 138, 58, 0.5)');
-                grad.addColorStop(0.5, 'rgba(201, 168, 76, 0.7)');
-                grad.addColorStop(1, 'rgba(230, 200, 100, 0.9)');
-                specCtx.fillStyle = grad;
-                specCtx.fillRect(x + gap/2, ch - barH, barW - gap, barH);
+            // Draw filled wave using bezier curves
+            const stepX = cw / (points.length - 1);
 
-                // Scanline effect on bars
-                for (let sy = ch - barH; sy < ch; sy += 4) {
-                    specCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-                    specCtx.fillRect(x + gap/2, sy, barW - gap, 1);
+            // Glow layer
+            specCtx.save();
+            specCtx.shadowColor = 'rgba(201, 168, 76, 0.4)';
+            specCtx.shadowBlur = 20;
+
+            specCtx.beginPath();
+            specCtx.moveTo(0, ch);
+
+            for (let i = 0; i < points.length; i++) {
+                const x = i * stepX;
+                const y = ch - points[i] * ch * 0.8;
+
+                if (i === 0) {
+                    specCtx.lineTo(x, y);
+                } else {
+                    const prevX = (i - 1) * stepX;
+                    const prevY = ch - points[i - 1] * ch * 0.8;
+                    const cpX = (prevX + x) / 2;
+                    specCtx.bezierCurveTo(cpX, prevY, cpX, y, x, y);
                 }
-
-                // Peak hold indicator
-                specCtx.fillStyle = 'rgba(230, 200, 100, 0.9)';
-                specCtx.fillRect(x + gap/2, ch - peakHold[i] - 3, barW - gap, 3);
-
-                // Glow on peak
-                specCtx.shadowColor = 'rgba(201, 168, 76, 0.5)';
-                specCtx.shadowBlur = 6;
-                specCtx.fillRect(x + gap/2, ch - peakHold[i] - 3, barW - gap, 3);
-                specCtx.shadowBlur = 0;
             }
 
-            // CRT scanline overlay on entire canvas
-            for (let sy = 0; sy < ch; sy += 6) {
-                specCtx.fillStyle = 'rgba(0, 0, 0, 0.06)';
-                specCtx.fillRect(0, sy, cw, 2);
-            }
+            specCtx.lineTo(cw, ch);
+            specCtx.closePath();
 
-            // Clear the bottom baseline completely
-            specCtx.clearRect(0, ch - 16, cw, 16);
+            // Gold gradient fill
+            const grad = specCtx.createLinearGradient(0, ch * 0.2, 0, ch);
+            grad.addColorStop(0, 'rgba(230, 200, 100, 0.6)');
+            grad.addColorStop(0.4, 'rgba(201, 168, 76, 0.3)');
+            grad.addColorStop(1, 'rgba(166, 138, 58, 0)');
+            specCtx.fillStyle = grad;
+            specCtx.fill();
+
+            // Draw the top edge line
+            specCtx.beginPath();
+            for (let i = 0; i < points.length; i++) {
+                const x = i * stepX;
+                const y = ch - points[i] * ch * 0.8;
+                if (i === 0) {
+                    specCtx.moveTo(x, y);
+                } else {
+                    const prevX = (i - 1) * stepX;
+                    const prevY = ch - points[i - 1] * ch * 0.8;
+                    const cpX = (prevX + x) / 2;
+                    specCtx.bezierCurveTo(cpX, prevY, cpX, y, x, y);
+                }
+            }
+            specCtx.strokeStyle = 'rgba(230, 200, 100, 0.8)';
+            specCtx.lineWidth = 2;
+            specCtx.stroke();
+            specCtx.restore();
+
+            // Fade out bottom
+            specCtx.clearRect(0, ch - 8, cw, 8);
 
             const now = Date.now();
             const scale = 1 + bass * 0.5;
