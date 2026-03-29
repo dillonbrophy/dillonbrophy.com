@@ -656,16 +656,6 @@ document.addEventListener('DOMContentLoaded', () => {
             platter.className = 'vinyl-platter';
             thumb.appendChild(platter);
 
-            // Add vinyl needle
-            const needle = document.createElement('div');
-            needle.className = 'vinyl-needle';
-            needle.innerHTML = '<svg viewBox="0 0 20 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-                '<circle cx="16" cy="4" r="3.5" fill="#333" stroke="#555" stroke-width="1"/>' +
-                '<line x1="16" y1="7" x2="8" y2="32" stroke="#888" stroke-width="2" stroke-linecap="round"/>' +
-                '<line x1="8" y1="32" x2="6" y2="35" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/>' +
-                '<circle cx="6" cy="35" r="1" fill="#ccc"/>' +
-                '</svg>';
-            thumb.appendChild(needle);
         }
 
         btn.addEventListener('click', (e) => {
