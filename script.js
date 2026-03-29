@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const progress = Math.min(elapsed / duration, 1);
                 const eased = 1 - Math.pow(1 - progress, 3);
                 const current = Math.round(100 - eased * (100 - target));
-                percentEl.textContent = current;
+                percentEl.textContent = 'TOP ' + current;
                 if (progress < 1) {
                     requestAnimationFrame(updatePercent);
                 } else {
