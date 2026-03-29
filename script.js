@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 liveTarget = baseTarget + Math.floor(cappedDays * rate);
             }
 
-            const duration = 8000;
+            const duration = 1500;
             const start = performance.now();
 
             function update(now) {
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const percentEl = document.querySelector('.stat-percent');
         if (percentEl) {
             const target = parseInt(percentEl.dataset.target, 10);
-            const duration = 8000;
+            const duration = 1500;
             const start = performance.now();
 
             function updatePercent(now) {
