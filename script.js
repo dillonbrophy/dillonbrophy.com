@@ -593,8 +593,19 @@ document.addEventListener('DOMContentLoaded', () => {
             specCtx.stroke();
             specCtx.restore();
 
-            // Fade out bottom
-            specCtx.clearRect(0, ch - 8, cw, 8);
+            // Fade out bottom smoothly
+            const fadeGrad = specCtx.createLinearGradient(0, ch - 20, 0, ch);
+            fadeGrad.addColorStop(0, 'rgba(10, 10, 10, 0)');
+            fadeGrad.addColorStop(1, 'rgba(10, 10, 10, 1)');
+            specCtx.fillStyle = fadeGrad;
+            specCtx.fillRect(0, ch - 20, cw, 20);
+
+            // Also fade out the left edge (low freq)
+            const leftFade = specCtx.createLinearGradient(0, 0, cw * 0.08, 0);
+            leftFade.addColorStop(0, 'rgba(10, 10, 10, 1)');
+            leftFade.addColorStop(1, 'rgba(10, 10, 10, 0)');
+            specCtx.fillStyle = leftFade;
+            specCtx.fillRect(0, 0, cw * 0.08, ch);
 
             const now = Date.now();
             const scale = 1 + bass * 0.5;
