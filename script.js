@@ -689,7 +689,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 stopBassAnalysis(currentItem);
             }
             const audio = new Audio(previewUrl);
-            audio.crossOrigin = 'anonymous';
             btn.innerHTML = pauseIcon;
             btn.classList.add('playing');
             item.classList.add('now-playing');
@@ -697,10 +696,16 @@ document.addEventListener('DOMContentLoaded', () => {
             currentBtn = btn;
             currentItem = item;
             if (isMobile) showMobilePlayer(item);
+
+            // Try with crossOrigin for audio analysis, fall back without
+            audio.crossOrigin = 'anonymous';
             audio.play().then(() => {
                 startBassAnalysis(audio, item);
-            }).catch(e => {
-                console.log('Play failed:', e);
+            }).catch(() => {
+                // CORS failed — retry without crossOrigin (no visualizer but audio plays)
+                audio.crossOrigin = null;
+                audio.src = previewUrl;
+                audio.play().catch(() => {});
             });
             audio.addEventListener('ended', () => {
                 btn.innerHTML = playIcon;
