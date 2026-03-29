@@ -62,22 +62,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 const progress = Math.min(elapsed / duration, 1);
                 const eased = 1 - Math.pow(1 - progress, 3);
 
-                // Current animated value
                 let current;
                 if (progress < 1) {
                     current = Math.floor(eased * liveTarget);
-                } else if (rate) {
-                    // After initial animation, keep ticking but cap at 1 day
-                    const daysSince = (Date.now() - new Date(baselineDate).getTime()) / 86400000;
-                    const cappedDays = Math.min(daysSince, 1);
-                    current = baseTarget + Math.floor(cappedDays * rate);
+                    el.textContent = formatNumber(current, useCommas);
+                    requestAnimationFrame(update);
                 } else {
                     el.textContent = formatNumber(liveTarget, useCommas);
-                    return;
-                }
 
-                el.textContent = formatNumber(current, useCommas);
-                requestAnimationFrame(update);
+                    // After initial animation, start the drip counter
+                    if (rate) {
+                        let runningTotal = liveTarget;
+                        // 1M per day = ~11.57 per second
+                        // With bursts every 3-7 seconds, each burst is ~35-80 streams
+                        const parent = el.closest('.stat');
+
+                        function dripStream() {
+                            const amount = Math.floor(Math.random() * 60) + 20; // 20-79
+                            runningTotal += amount;
+                            el.textContent = formatNumber(runningTotal, useCommas);
+
+                            // Create floating +amount
+                            const pop = document.createElement('span');
+                            pop.textContent = '+' + amount;
+                            pop.style.cssText = 'position:absolute;top:-10px;right:-5px;font-size:0.85rem;color:rgba(201,168,76,1);font-family:monospace;font-weight:700;pointer-events:none;white-space:nowrap;transition:opacity 1.5s ease-out;opacity:1;transform:translateX(100%);';
+                            el.style.position = 'relative';
+                            el.appendChild(pop);
+
+                            requestAnimationFrame(() => {
+                                pop.style.opacity = '0';
+                            });
+
+                            setTimeout(() => pop.remove(), 1600);
+
+                            // Next burst in 6-12 seconds
+                            const nextDelay = 6000 + Math.random() * 6000;
+                            setTimeout(dripStream, nextDelay);
+                        }
+
+                        // Start first drip after a short pause
+                        setTimeout(dripStream, 2000);
+                    }
+                }
             }
             requestAnimationFrame(update);
         });
