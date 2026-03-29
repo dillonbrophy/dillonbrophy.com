@@ -184,7 +184,6 @@ body {
     grid-template-rows: repeat(5, 1fr);
     gap: 0;
     z-index: 0;
-    opacity: 0.07;
     filter: grayscale(0.5);
 }
 
@@ -192,6 +191,21 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    opacity: 0.04;
+}
+
+/* Top covers more visible */
+.album-wall img:nth-child(-n+6) {
+    opacity: 0.12;
+    filter: grayscale(0.3);
+}
+
+.album-wall img:nth-child(n+7):nth-child(-n+12) {
+    opacity: 0.08;
+}
+
+.album-wall img:nth-child(n+13):nth-child(-n+18) {
+    opacity: 0.06;
 }
 
 .hero-content {
