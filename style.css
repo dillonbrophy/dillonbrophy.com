@@ -194,18 +194,15 @@ body {
     opacity: 0.04;
 }
 
-/* Top covers more visible */
-.album-wall img:nth-child(-n+6) {
+/* All covers same size, popular ones brighter */
+.album-wall img:nth-child(1),
+.album-wall img:nth-child(2),
+.album-wall img:nth-child(3),
+.album-wall img:nth-child(4),
+.album-wall img:nth-child(5),
+.album-wall img:nth-child(6) {
     opacity: 0.12;
-    filter: grayscale(0.3);
-}
-
-.album-wall img:nth-child(n+7):nth-child(-n+12) {
-    opacity: 0.08;
-}
-
-.album-wall img:nth-child(n+13):nth-child(-n+18) {
-    opacity: 0.06;
+    filter: grayscale(0.2);
 }
 
 .hero-content {
