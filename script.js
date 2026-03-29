@@ -597,6 +597,37 @@ document.addEventListener('DOMContentLoaded', () => {
             specCtx.stroke();
             specCtx.restore();
 
+            // LUFS meter — calibrated approximation
+            const rmsSum = dataArray.reduce((acc, val) => acc + (val / 255) * (val / 255), 0);
+            const rms = Math.sqrt(rmsSum / dataArray.length);
+            // Calibrated so loud hip-hop tracks read around -6 to -8 LUFS
+            const lufs = rms > 0 ? 20 * Math.log10(rms) + 2 : -60;
+            const lufsDisplay = Math.max(-60, Math.min(0, lufs)).toFixed(1);
+
+            // Smooth the LUFS reading — slower response
+            if (!specCanvas._smoothLufs) specCanvas._smoothLufs = -30;
+            specCanvas._smoothLufs += (lufs - specCanvas._smoothLufs) * 0.02;
+            const smoothLufsDisplay = Math.max(-60, Math.min(0, specCanvas._smoothLufs)).toFixed(1);
+
+            // Draw LUFS on desktop spectrum
+            specCtx.save();
+            specCtx.font = '22px monospace';
+            specCtx.textAlign = 'right';
+            specCtx.fillStyle = 'rgba(201, 168, 76, 0.8)';
+            specCtx.fillText(smoothLufsDisplay + ' LUFS', cw - 16, ch - 22);
+            specCtx.restore();
+
+            // Update mobile player LUFS
+            if (isMobile && mobilePlayer && mobilePlayer.classList.contains('active')) {
+                let lufsEl = mobilePlayer.querySelector('.mobile-player-lufs');
+                if (!lufsEl) {
+                    lufsEl = document.createElement('div');
+                    lufsEl.className = 'mobile-player-lufs';
+                    mobilePlayer.querySelector('.mobile-player-info').appendChild(lufsEl);
+                }
+                lufsEl.textContent = smoothLufsDisplay + ' LUFS';
+            }
+
             // Fade out bottom smoothly
             const fadeGrad = specCtx.createLinearGradient(0, ch - 20, 0, ch);
             fadeGrad.addColorStop(0, 'rgba(10, 10, 10, 0)');
@@ -604,7 +635,7 @@ document.addEventListener('DOMContentLoaded', () => {
             specCtx.fillStyle = fadeGrad;
             specCtx.fillRect(0, ch - 20, cw, 20);
 
-            // Also fade out the left edge (low freq)
+            // Fade left edge
             const leftFade = specCtx.createLinearGradient(0, 0, cw * 0.08, 0);
             leftFade.addColorStop(0, 'rgba(10, 10, 10, 1)');
             leftFade.addColorStop(1, 'rgba(10, 10, 10, 0)');

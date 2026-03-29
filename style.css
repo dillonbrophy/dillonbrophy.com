@@ -1471,6 +1471,14 @@ body {
         font-weight: 500;
     }
 
+    .mobile-player-lufs {
+        font-family: monospace;
+        font-size: 0.7rem;
+        color: rgba(201, 168, 76, 0.5);
+        margin-top: 12px;
+        letter-spacing: 1px;
+    }
+
     .mobile-player-btn {
         width: 56px;
         height: 56px;
