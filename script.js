@@ -524,7 +524,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (let j = 0; j < binsPerPoint; j++) {
                     sum += dataArray[i * binsPerPoint + j];
                 }
-                const val = sum / binsPerPoint / 255;
+                let val = sum / binsPerPoint / 255;
+
+                // Ease in from left — first few points ramp up from 0
+                const ramp = Math.min(1, i / 6);
+                val *= ramp;
+
+                // Ease out on right — last few points ramp down to 0
+                const rampRight = Math.min(1, (NUM_BARS - 1 - i) / 4);
+                val *= rampRight;
 
                 // Smooth with peak hold
                 if (val > peakHold[i]) {
