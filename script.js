@@ -136,6 +136,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (heroStats) statsObserver.observe(heroStats);
 
+    // ---- Fix marquee scroll width ----
+    document.querySelectorAll('.marquee-track').forEach(track => {
+        const isReverse = track.classList.contains('marquee-track-reverse');
+        // Each track has 2 copies of the names. We need to scroll exactly half the width.
+        const halfWidth = track.scrollWidth / 2;
+        track.style.animation = 'none';
+
+        const keyframes = isReverse
+            ? [{ transform: `translateX(-${halfWidth}px)` }, { transform: 'translateX(0)' }]
+            : [{ transform: 'translateX(0)' }, { transform: `translateX(-${halfWidth}px)` }];
+
+        track.animate(keyframes, {
+            duration: 20000,
+            iterations: Infinity,
+            easing: 'linear'
+        });
+    });
+
     // ---- Smooth scroll for nav links ----
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
