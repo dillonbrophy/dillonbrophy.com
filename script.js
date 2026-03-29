@@ -147,8 +147,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ? [{ transform: `translateX(-${halfWidth}px)` }, { transform: 'translateX(0)' }]
             : [{ transform: 'translateX(0)' }, { transform: `translateX(-${halfWidth}px)` }];
 
+        const isMobileMarquee = window.innerWidth <= 768;
         track.animate(keyframes, {
-            duration: 20000,
+            duration: isMobileMarquee ? 40000 : 20000,
             iterations: Infinity,
             easing: 'linear'
         });
