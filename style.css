@@ -194,6 +194,14 @@ body {
     opacity: 0.04;
 }
 
+/* Hero cover — OCTANE */
+.album-wall-hero {
+    grid-column: span 2;
+    grid-row: span 2;
+    opacity: 0.18 !important;
+    filter: grayscale(0.1) !important;
+}
+
 /* Top covers more visible */
 .album-wall img:nth-child(-n+6) {
     opacity: 0.12;
