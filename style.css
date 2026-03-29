@@ -178,33 +178,29 @@ body {
 
 .album-wall {
     position: absolute;
-    inset: 0;
+    inset: -20px;
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     grid-auto-rows: 1fr;
-    gap: 0;
+    gap: 2px;
     z-index: 0;
-    filter: grayscale(0.5);
     overflow: hidden;
+}
+
+.album-wall::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(10,10,10,0.5) 0%, rgba(10,10,10,0.85) 60%, rgba(10,10,10,1) 100%);
+    z-index: 1;
 }
 
 .album-wall img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.04;
-    aspect-ratio: 1;
-}
-
-/* All covers same size, popular ones brighter */
-.album-wall img:nth-child(1),
-.album-wall img:nth-child(2),
-.album-wall img:nth-child(3),
-.album-wall img:nth-child(4),
-.album-wall img:nth-child(5),
-.album-wall img:nth-child(6) {
-    opacity: 0.12;
-    filter: grayscale(0.2);
+    opacity: 0.15;
+    filter: grayscale(0.6);
 }
 
 .hero-content {
