@@ -181,10 +181,11 @@ body {
     inset: 0;
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(5, 1fr);
+    grid-auto-rows: 1fr;
     gap: 0;
     z-index: 0;
     filter: grayscale(0.5);
+    overflow: hidden;
 }
 
 .album-wall img {
@@ -192,6 +193,7 @@ body {
     height: 100%;
     object-fit: cover;
     opacity: 0.04;
+    aspect-ratio: 1;
 }
 
 /* All covers same size, popular ones brighter */
